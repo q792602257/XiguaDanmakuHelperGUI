@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 
@@ -95,7 +96,16 @@ namespace XiguaDanmakuHelper
             {
                 var url = $"https://i.snssdk.com/videolive/room/enter?version_code=730&device_platform=android";
                 var data = $"room_id={RoomID}&version_code=730&device_platform=android";
-                var _text = await Common.HttpPostAsync(url, data);
+                string _text;
+                try
+                {
+                    _text = await Common.HttpPostAsync(url, data);
+                }
+                catch (WebException)
+                {
+                    LogMessage?.Invoke("网络错误");
+                    return false;
+                }
                 var j = JObject.Parse(_text);
                 if (j["room"] is null)
                 {
@@ -112,7 +122,16 @@ namespace XiguaDanmakuHelper
             else
             {
                 var url = $"https://security.snssdk.com/video/app/search/live/?version_code=730&device_platform=android&format=json&keyword={liverName}";
-                var _text = await Common.HttpGetAsync(url);
+                string _text;
+                try
+                {
+                    _text = await Common.HttpGetAsync(url);
+                }
+                catch (WebException)
+                {
+                    LogMessage?.Invoke("网络错误");
+                    return false;
+                }
                 var j = JObject.Parse(_text);
                 if (!(j["data"] is null))
                 {
@@ -151,7 +170,16 @@ namespace XiguaDanmakuHelper
             {
                 var url = $"https://i.snssdk.com/videolive/room/enter?version_code=730&device_platform=android";
                 var data = $"room_id={RoomID}&version_code=730&device_platform=android";
-                var _text = Common.HttpPost(url, data);
+                string _text;
+                try
+                {
+                    _text = Common.HttpPost(url, data);
+                }
+                catch (WebException)
+                {
+                    LogMessage?.Invoke("网络错误");
+                    return false;
+                }
                 var j = JObject.Parse(_text);
                 if (j["room"] is null)
                 {
@@ -170,7 +198,16 @@ namespace XiguaDanmakuHelper
             else
             {
                 var url = $"https://security.snssdk.com/video/app/search/live/?version_code=730&device_platform=android&format=json&keyword={liverName}";
-                var _text = Common.HttpGet(url);
+                string _text;
+                try
+                {
+                    _text = Common.HttpGet(url);
+                }
+                catch (WebException)
+                {
+                    LogMessage?.Invoke("网络错误");
+                    return false;
+                }
                 var j = JObject.Parse(_text);
                 if (!(j["data"] is null))
                 {
@@ -211,8 +248,19 @@ namespace XiguaDanmakuHelper
                 return;
             }
 
-            var _text =
-                Common.HttpGet($"https://i.snssdk.com/videolive/im/get_msg?cursor={cursor}&room_id={RoomID}&version_code=730&device_platform=android");
+            var url =
+                $"https://i.snssdk.com/videolive/im/get_msg?cursor={cursor}&room_id={RoomID}&version_code=730&device_platform=android";
+            string _text;
+            try
+            {
+                _text = Common.HttpGet(url);
+            }
+            catch (WebException)
+            {
+                LogMessage?.Invoke("网络错误");
+                return;
+            }
+
             var j = JObject.Parse(_text);
             if (j["extra"]?["cursor"] is null)
             {
