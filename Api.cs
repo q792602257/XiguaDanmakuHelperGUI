@@ -30,13 +30,11 @@ namespace XiguaDanmakuHelper
         public delegate void WhenSubscribe(User user);
 
 //        public delegate void WhenLotteryFinished();
-        private int _rand;
         private long _roomPopularity;
         protected string cursor = "0";
         public bool isLive = false;
         public bool isValidRoom = false;
         private long RoomID = 0;
-        private string _name;
         public string Title = "";
         public User user;
         private int _updRoomCount = 0;

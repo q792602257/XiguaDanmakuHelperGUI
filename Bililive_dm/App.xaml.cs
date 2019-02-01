@@ -48,6 +48,8 @@ namespace Bililive_dm
             catch (Exception)
             {
             }
+
+            Environment.Exit(1);
         }
     }
 }

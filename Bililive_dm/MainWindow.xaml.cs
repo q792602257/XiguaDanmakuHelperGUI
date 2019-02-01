@@ -232,7 +232,6 @@ namespace Bililive_dm
             ConnBtn.IsEnabled = false;
             DisconnBtn.IsEnabled = false;
             var connectresult = false;
-            var trytime = 0;
             logging("正在连接");
 
             connectresult = await b.ConnectAsync();
