@@ -43,7 +43,7 @@ namespace XiguaDanmakuHelper
         {
             GiftList = new Dictionary<long, string>();
             GiftList.Add(10001, "西瓜");
-            var _text = Common.HttpGet($"https://i.snssdk.com/videolive/gift/get_gift_list?room_id={RoomID}");
+            var _text = Common.HttpGet($"https://i.snssdk.com/videolive/gift/get_gift_list?room_id={RoomID}&version_code=730&device_platform=android");
             var j = JObject.Parse(_text);
             if (j["gift_info"].Any())
                 foreach (var g in j["gift_info"])
@@ -76,7 +76,6 @@ namespace XiguaDanmakuHelper
         public static async void UpdateGiftListAsync(long roomId)
         {
             GiftList = new Dictionary<long, string>();
-            GiftList.Add(10001, "西瓜");
             var _text = await Common.HttpGetAsync($"https://i.snssdk.com/videolive/gift/get_gift_list?room_id={roomId}");
             var j = JObject.Parse(_text);
             if (j["gift_info"] != null)
