@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 
 namespace XiguaDanmakuHelper
@@ -6,14 +7,17 @@ namespace XiguaDanmakuHelper
     {
         public string content;
         public User user;
+        private List<string> filter;
 
         public Chat(JObject j)
         {
+            filter = new List<string>();;
+            filter.Add("");
             content = "";
             user = new User(j);
-            if (j["Msg"]?["content"] != null) content = (string) j["Msg"]["content"];
+            if (j["extra"]?["content"] != null) content = (string) j["extra"]["content"];
         }
-
+    
         public override string ToString()
         {
             return $"{user} : {content}";

@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 
@@ -8,7 +9,7 @@ namespace XiguaDanmakuHelper
     {
         public delegate void Log(string msg);
 
-        public delegate void RoomCounting(long viewer, long popularity);
+        public delegate void RoomCounting(long popularity);
 
         public delegate void WhenAd();
 
@@ -28,26 +29,27 @@ namespace XiguaDanmakuHelper
 
         public delegate void WhenSubscribe(User user);
 
+//        public delegate void WhenLotteryFinished();
         private int _rand;
-        private JObject _rawRoomInfo;
         private long _roomPopularity;
-        private long _roomViewer;
-        protected string cursor = "";
-        public bool isLive;
-        public bool isValidRoom;
-        private long RoomID;
+        protected string cursor = "0";
+        public bool isLive = false;
+        public bool isValidRoom = false;
+        private long RoomID = 0;
+        private string _name;
         public string Title = "";
         public User user;
-        private readonly long UserID;
+        private int _updRoomCount = 0;
+        private string liverName;
 
         public Api()
         {
-            UserID = 97621754276;
+            liverName = "永恒de草薙";
         }
 
-        public Api(long userId)
+        public Api(string name)
         {
-            UserID = userId;
+            liverName = name;
         }
 
         public event WhenChat OnChat;
@@ -61,13 +63,14 @@ namespace XiguaDanmakuHelper
         public static event WhenMessage OnMessage;
         public static event RoomCounting OnRoomCounting;
         public static event Log LogMessage;
+//        public static event WhenLotteryFinished OnLotteryFinished;
 
         public async Task<bool> ConnectAsync()
         {
-            await UpdateRoomInfo();
+            await UpdateRoomInfoAsync();
             if (!isValidRoom)
             {
-                LogMessage?.Invoke("请确认输入的用户ID是否正确");
+                LogMessage?.Invoke("请确认输入的用户名是否正确");
                 return false;
             }
 
@@ -76,74 +79,161 @@ namespace XiguaDanmakuHelper
                 LogMessage?.Invoke("主播未开播");
                 return false;
             }
-
-            Gift.UpdateGiftList(RoomID);
-            EnterRoom();
-//            LogMessage?.Invoke("连接成功");
+            LogMessage?.Invoke("连接成功");
             return true;
         }
 
         public void _updateRoomInfo(JObject j)
         {
-            if (j["Msg"]?["member_count"] != null) _roomViewer = (long) j["Msg"]["member_count"];
-            if (j["Msg"]?["popularity"] != null) _roomPopularity = (long) j["Msg"]["popularity"];
+            if (j["extra"]?["member_count"] != null) _roomPopularity = (long) j["extra"]["member_count"];
+            if (j["data"]?["popularity"] != null) _roomPopularity = (long) j["data"]["popularity"];
 
-            OnRoomCounting?.Invoke(_roomViewer, _roomPopularity);
+            OnRoomCounting?.Invoke(_roomPopularity);
         }
 
-        public async Task<bool> UpdateRoomInfo()
+        public async Task<bool> UpdateRoomInfoAsync()
         {
-            var url = $"https://live.ixigua.com/api/room?anchorId={UserID}";
-            var _text = await Common.HttpGetAsync(url);
-            var j = JObject.Parse(_text);
-            if (j["data"]?["title"] is null || j["data"]?["id"] is null)
+            if (isLive)
             {
-                LogMessage?.Invoke("无法获取RoomID，请与我联系");
-                Console.Read();
+                var url = $"https://i.snssdk.com/videolive/room/enter?version_code=730&device_platform=android";
+                var data = $"room_id={RoomID}&version_code=730&device_platform=android";
+                var _text = await Common.HttpPostAsync(url, data);
+                var j = JObject.Parse(_text);
+                if (j["room"] is null)
+                {
+                    LogMessage?.Invoke("无法获取Room信息，请与我联系");
+                    return false;
+                }
+
+                Title = (string) j["room"]["title"];
+                user = new User(j);
+
+                isLive = (int) j["room"]?["status"] == 2;
+                return true;
+            }
+            else
+            {
+                var url = $"https://security.snssdk.com/video/app/search/live/?version_code=730&device_platform=android&format=json&keyword={liverName}";
+                var _text = await Common.HttpGetAsync(url);
+                var j = JObject.Parse(_text);
+                if (!(j["data"] is null))
+                {
+                    foreach (var _j in j["data"])
+                    {
+                        if ((int) _j["block_type"] != 0)
+                        {
+                            continue;
+                        }
+
+                        if (_j["cells"].Any())
+                        {
+                            isValidRoom = true;
+                            isLive = (bool) _j["cells"][0]["anchor"]["user_info"]["is_living"];
+                            RoomID = (long)_j["cells"][0]["anchor"]["room_id"];
+                            liverName = new User((JObject)_j["cells"][0]).ToString();
+                        }
+                        else
+                        {
+                            return false;
+                        }
+                    }
+
+                    if (isLive)
+                    {
+                        return await UpdateRoomInfoAsync();
+                    }
+                }
                 return false;
             }
-
-            isValidRoom = true;
-            _rawRoomInfo = (JObject) j["data"];
-            Title = (string) j["data"]["title"];
-            RoomID = (long) j["data"]["id"];
-            user = new User(j);
-
-            isLive = (int) j["data"]?["status"] == 2;
-            return true;
         }
 
-        public async void EnterRoom()
+        public bool UpdateRoomInfo()
         {
-            if (!isValidRoom) return;
-            await Common.HttpPostAsync($"https://live.ixigua.com/api/room/enter/{RoomID}");
+            if (isLive)
+            {
+                var url = $"https://i.snssdk.com/videolive/room/enter?version_code=730&device_platform=android";
+                var data = $"room_id={RoomID}&version_code=730&device_platform=android";
+                var _text = Common.HttpPost(url, data);
+                var j = JObject.Parse(_text);
+                if (j["room"] is null)
+                {
+                    LogMessage?.Invoke("无法获取Room信息，请与我联系");
+                    return false;
+                }
+
+                isValidRoom = (int)j["base_resp"]?["status_code"] == 0;
+                Title = (string) j["data"]["title"];
+                RoomID = (long) j["data"]["id"];
+                user = new User(j);
+
+                isLive = (int) j["room"]?["status"] == 2;
+                return true;
+            }
+            else
+            {
+                var url = $"https://security.snssdk.com/video/app/search/live/?version_code=730&device_platform=android&format=json&keyword={liverName}";
+                var _text = Common.HttpGet(url);
+                var j = JObject.Parse(_text);
+                if (!(j["data"] is null))
+                {
+                    foreach (var _j in j["data"])
+                    {
+                        if ((int) _j["block_type"] != 0)
+                        {
+                            continue;
+                        }
+
+                        if (_j["cells"].Any())
+                        {
+                            isValidRoom = true;
+                            isLive = (bool) _j["cells"][0]["anchor"]["user_info"]["is_living"];
+                            RoomID = (int)_j["cells"][0]["anchor"]["room_id"];
+                            liverName = (new User((JObject)_j["cells"][0])).ToString();
+                        }
+                        else
+                        {
+                            return false;
+                        }
+                    }
+
+                    if (isLive)
+                    {
+                        return UpdateRoomInfo();
+                    }
+                }
+                return false;
+            }
         }
 
         public void GetDanmaku()
         {
-            if (!isValidRoom) return;
-
-            var _text =
-                Common.HttpGet($"https://live.ixigua.com/api/msg/list/{RoomID}?AnchorID={UserID}&Cursor={cursor}");
-            var j = JObject.Parse(_text);
-            if (j["data"]?["Extra"]?["Cursor"] is null)
-            {
-                LogMessage?.Invoke("数据结构改变，请与我联系");
-                Console.Read();
-                return;
-            }
-
-            cursor = (string) j["data"]["Extra"]["Cursor"];
-            if (j["data"]?["LiveMsgs"] is null)
+            if (!isValidRoom)
             {
                 UpdateRoomInfo();
                 return;
             }
 
-            foreach (var m in j["data"]["LiveMsgs"])
+            var _text =
+                Common.HttpGet($"https://i.snssdk.com/videolive/im/get_msg?cursor={cursor}&room_id={RoomID}&version_code=730&device_platform=android");
+            var j = JObject.Parse(_text);
+            if (j["extra"]?["cursor"] is null)
             {
-                if (m?["Method"] is null) continue;
-                switch ((string) m["Method"])
+                LogMessage?.Invoke("cursor 数据结构改变，请与我联系");
+                Console.Read();
+                return;
+            }
+
+            cursor = (string) j["extra"]["cursor"];
+            if (j["data"] is null)
+            {
+                UpdateRoomInfo();
+                return;
+            }
+
+            foreach (var m in j["data"])
+            {
+                if (m?["common"]?["method"] is null) continue;
+                switch ((string) m["common"]["method"])
                 {
                     case "VideoLivePresentMessage":
                         OnGifting?.Invoke(new Gift((JObject) m));
@@ -188,14 +278,6 @@ namespace XiguaDanmakuHelper
                         break;
                 }
             }
-        }
-
-        public string GetTitle()
-        {
-            if (!isValidRoom) return "无法获取直播间信息";
-            if (_rand <= 5) return user.ToString();
-            if (_rand >= 10) _rand = 0;
-            return $"观众:{_roomViewer} 人气:{_roomPopularity}";
         }
     }
 }

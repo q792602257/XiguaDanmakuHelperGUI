@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 
 namespace XiguaDanmakuHelper
@@ -7,6 +9,7 @@ namespace XiguaDanmakuHelper
     {
         public User user;
         private readonly long ID;
+        public static long RoomID = 0;
         public long count;
         public static Dictionary<long, string> GiftList = new Dictionary<long, string>();
 
@@ -15,28 +18,43 @@ namespace XiguaDanmakuHelper
             ID = 0;
             count = 0;
             user = new User(j);
-            if (j["Msg"]?["present_end_info"] != null)
+            if (j["common"]?["room_id"] != null)
             {
-                ID = (long) j["Msg"]["present_end_info"]["id"];
-                count = (long) j["Msg"]["present_end_info"]["count"];
+                RoomID = (long) j["common"]["room_id"];
+                UpdateGiftList();
             }
-
-            if (j["Msg"]?["present_info"] != null)
+            if (j["extra"]?["present_end_info"] != null && j["extra"]["present_end_info"].Any())
             {
-                ID = (long) j["Msg"]["present_info"]["id"];
-                count = (long) j["Msg"]["present_info"]["repeat_count"];
+                ID = (long) j["extra"]["present_end_info"]["id"];
+                count = (long) j["extra"]["present_end_info"]["count"];
+            }
+            else if (j["extra"]?["present_info"] != null && j["extra"]["present_info"].Any())
+            {
+                ID = (long) j["extra"]["present_info"]["id"];
+                count = (long) j["extra"]["present_info"]["repeat_count"];
+            }
+            if (ID != 0 && !GiftList.ContainsKey(ID))
+            {
+                UpdateGiftList();
             }
         }
 
-        public static void UpdateGiftList(long roomId)
+        private void UpdateGiftList()
         {
             GiftList = new Dictionary<long, string>();
             GiftList.Add(10001, "西瓜");
-            var _text = Common.HttpGet($"https://live.ixigua.com/api/gifts/{roomId}");
+            var _text = Common.HttpGet($"https://i.snssdk.com/videolive/gift/get_gift_list?room_id={RoomID}");
             var j = JObject.Parse(_text);
-            if (j["data"] != null)
-                foreach (var g in j["data"])
-                    GiftList.Add((long) g["ID"], (string) g["Name"]);
+            if (j["gift_info"].Any())
+                foreach (var g in j["gift_info"])
+                    if (GiftList.ContainsKey((long) g["id"]))
+                    {
+                        GiftList[(long) g["id"]] = (string) g["name"];
+                    }
+                    else
+                    {
+                        GiftList.Add((long) g["id"], (string) g["name"]);
+                    }
         }
 
         public override string ToString()
@@ -53,6 +71,24 @@ namespace XiguaDanmakuHelper
                 GiftN = $"未知礼物{ID}";
 
             return GiftN;
+        }
+
+        public static async void UpdateGiftListAsync(long roomId)
+        {
+            GiftList = new Dictionary<long, string>();
+            GiftList.Add(10001, "西瓜");
+            var _text = await Common.HttpGetAsync($"https://i.snssdk.com/videolive/gift/get_gift_list?room_id={roomId}");
+            var j = JObject.Parse(_text);
+            if (j["gift_info"] != null)
+                foreach (var g in j["gift_info"])
+                    if (GiftList.ContainsKey((long) g["id"]))
+                    {
+                        GiftList[(long) g["id"]] = (string) g["name"];
+                    }
+                    else
+                    {
+                        GiftList.Add((long) g["id"], (string) g["name"]);
+                    }
         }
     }
 }

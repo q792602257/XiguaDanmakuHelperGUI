@@ -25,13 +25,13 @@ namespace Bililive_dm.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("97621754276")]
-        public long roomId {
+        [global::System.Configuration.DefaultSettingValueAttribute("永恒de草薙")]
+        public string name {
             get {
-                return ((long)(this["roomId"]));
+                return (string)this["name"];
             }
             set {
-                this["roomId"] = value;
+                this["name"] = value;
             }
         }
     }

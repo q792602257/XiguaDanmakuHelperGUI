@@ -55,11 +55,11 @@ namespace Bililive_dm
 
             try
             {
-                RoomId.Text = Properties.Settings.Default.roomId.ToString();
+                LiverName.Text = Properties.Settings.Default.name;
             }
             catch
             {
-                RoomId.Text = "";
+                LiverName.Text = "";
             }
 
             ChatOpt = true;
@@ -141,10 +141,6 @@ namespace Bililive_dm
         private void b_LogMessage(string e)
         {
             logging(e);
-        }
-
-        private void Magic()
-        {
         }
 
         [DllImport("user32", EntryPoint = "SetWindowLong")]
@@ -230,17 +226,8 @@ namespace Bililive_dm
 
         private async void connbtn_Click(object sender, RoutedEventArgs e)
         {
-            long roomId;
-            try
-            {
-                roomId = long.Parse(RoomId.Text.Trim());
-                b = new Api(roomId);
-            }
-            catch (Exception)
-            {
-                MessageBox.Show("请输入用户ID,用户ID是数字");
-                return;
-            }
+            Name = LiverName.Text.Trim();
+            b = new Api(Name);
 
             ConnBtn.IsEnabled = false;
             DisconnBtn.IsEnabled = false;
@@ -249,21 +236,6 @@ namespace Bililive_dm
             logging("正在连接");
 
             connectresult = await b.ConnectAsync();
-
-            if (!connectresult) // 如果连接不成功并且出错了
-                logging("连接失败");
-
-            while (!connectresult)
-            {
-                if (trytime > 5)
-                    break;
-                trytime++;
-                logging("等10秒后重试");
-                await TaskEx.Delay(10000); // 稍等一下
-                logging("正在重新连接");
-                connectresult = await b.ConnectAsync();
-            }
-
 
             if (connectresult)
             {
@@ -281,7 +253,7 @@ namespace Bililive_dm
             DisconnBtn.IsEnabled = true;
         }
 
-        public void b_ReceivedRoomCount(long viewer, long popularity)
+        public void b_ReceivedRoomCount(long popularity)
         {
 //            logging("當前房間人數:" + e.UserCount);
 //            AddDMText("當前房間人數", e.UserCount+"", true);
@@ -289,12 +261,10 @@ namespace Bililive_dm
             if (CheckAccess())
             {
                 OnlinePopularity.Text = popularity.ToString();
-                OnlineViewer.Text = viewer.ToString();
             }
             else
             {
                 Dispatcher.BeginInvoke(new Action(() => { OnlinePopularity.Text = popularity.ToString(); }));
-                Dispatcher.BeginInvoke(new Action(() => { OnlineViewer.Text = viewer.ToString(); }));
             }
         }
 
