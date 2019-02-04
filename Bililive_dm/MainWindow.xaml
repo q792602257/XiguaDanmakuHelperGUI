@@ -42,7 +42,8 @@
                       IsChecked="True" Checked="showChat_OnChecked" Unchecked="ShowChat_OnUnchecked" Margin="10,0,0,0"/>
             <CheckBox Content="礼物及粉丝团" HorizontalAlignment="Left" VerticalAlignment="Center" x:Name="showPresent"
                       IsChecked="False" Checked="showPresent_OnChecked" Unchecked="showPresent_OnUnchecked" Margin="10,0,0,0"/>
-
+            <CheckBox Content="点亮消息" HorizontalAlignment="Left" VerticalAlignment="Center" x:Name="showLike"
+                      IsChecked="False" Checked="ShowLike_OnChecked" Unchecked="ShowLike_OnUnchecked" Margin="10,0,0,0"/>
         </StackPanel>
 
         <TextBlock Text="非西瓜直播官方弹幕助手; Modified by JerryYan, based on BiliLive_dm"

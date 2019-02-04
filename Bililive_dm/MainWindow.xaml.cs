@@ -47,6 +47,7 @@ namespace Bililive_dm
         
         private bool ChatOpt;
         private bool GiftOpt;
+        private bool LikeOpt;
 
         public MainWindow()
         {
@@ -64,6 +65,7 @@ namespace Bililive_dm
 
             ChatOpt = true;
             GiftOpt = false;
+            LikeOpt = false;
             b = new Api();
             overlay_enabled = true;
             OpenOverlay();
@@ -72,6 +74,7 @@ namespace Bililive_dm
             Closed += MainWindow_Closed;
 
             Api.OnMessage += b_ReceivedDanmaku;
+            Api.OnLeave += OnLiveStop;
 //            b.OnMessage += ProcDanmaku;
             Api.LogMessage += b_LogMessage;
             Api.OnRoomCounting += b_ReceivedRoomCount;
@@ -320,6 +323,16 @@ namespace Bililive_dm
                     }
                     break;
                 }
+                case MessageEnum.Like:
+                {
+                    if (LikeOpt)
+                    {
+                        logging($"用户 {danmakuModel.UserModel} 点了喜欢");
+                        AddDMText("点亮",
+                            "用户" + danmakuModel.UserModel + "点了喜欢", true);
+                    }
+                    break;
+                }
             }
         }
 
@@ -354,11 +367,11 @@ namespace Bililive_dm
             }
             else
             {
-                Log.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => AddDMText(notify, text)));
+                Log.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => AddDMText(notify, text, warn)));
             }
         }
 
-        public void AddDMText(User user, string text, bool warn = false)
+        public void AddDMText(User user, string text)
         {
             if (!overlay_enabled) return;
             if (Dispatcher.CheckAccess())
@@ -366,14 +379,6 @@ namespace Bililive_dm
                 var c = new DanmakuTextControl();
 
                 c.UserName.Text = user.ToString();
-                if (warn)
-                {
-                    c.UserName.Foreground = Brushes.Red;
-                }
-                else if (user.isImportant())
-                {
-                    c.UserName.Foreground = Brushes.Gold;
-                }
                 c.Text.Text = text;
                 c.ChangeHeight();
                 var sb = (Storyboard) c.Resources["Storyboard1"];
@@ -398,6 +403,12 @@ namespace Bililive_dm
         public void Test_OnClick(object sender, RoutedEventArgs e)
         {
             AddDMText("提示", "這是一個測試😀😭", true);
+        }
+
+        private void OnLiveStop()
+        {
+            logging("提示：主播已下播");
+            Disconnbtn_OnClick(this, new RoutedEventArgs());
         }
 
         private void Disconnbtn_OnClick(object sender, RoutedEventArgs e)
@@ -469,6 +480,16 @@ namespace Bililive_dm
         private void showBrand_OnUnchecked(object sender, RoutedEventArgs e)
         {
             User.showBrand = false;
+        }
+
+        private void ShowLike_OnChecked(object sender, RoutedEventArgs e)
+        {
+            LikeOpt = true;
+        }
+
+        private void ShowLike_OnUnchecked(object sender, RoutedEventArgs e)
+        {
+            LikeOpt = false;
         }
     }
 }

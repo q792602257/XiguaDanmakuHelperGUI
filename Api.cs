@@ -13,6 +13,8 @@ namespace XiguaDanmakuHelper
         public delegate void RoomCounting(long popularity);
 
         public delegate void WhenMessage(MessageModel m);
+        
+        public delegate void WhenLeave();
 
 //        public delegate void WhenLotteryFinished();
         private long _roomPopularity;
@@ -38,6 +40,7 @@ namespace XiguaDanmakuHelper
         public static event WhenMessage OnMessage;
         public static event RoomCounting OnRoomCounting;
         public static event Log LogMessage;
+        public static event WhenLeave OnLeave;
 //        public static event WhenLotteryFinished OnLotteryFinished;
 
         public async Task<bool> ConnectAsync()
@@ -91,7 +94,10 @@ namespace XiguaDanmakuHelper
 
                 Title = (string) j["room"]["title"];
                 user = new User(j);
-
+                if (isLive && (int) j["room"]?["status"] != 2)
+                {
+                    OnLeave?.Invoke();
+                }
                 isLive = (int) j["room"]?["status"] == 2;
                 return true;
             }
@@ -283,6 +289,7 @@ namespace XiguaDanmakuHelper
                         OnMessage?.Invoke(new MessageModel(MessageEnum.Join, new User((JObject) m)));
                         break;
                     case "VideoLiveControlMessage":
+                        UpdateRoomInfo();
                         OnMessage?.Invoke(new MessageModel(MessageEnum.Leave));
                         break;
                     case "VideoLiveDiggMessage":
