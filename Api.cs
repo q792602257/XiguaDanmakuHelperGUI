@@ -12,23 +12,7 @@ namespace XiguaDanmakuHelper
 
         public delegate void RoomCounting(long popularity);
 
-        public delegate void WhenAd();
-
-        public delegate void WhenChat(Chat chat);
-
-        public delegate void WhenGift(Gift gift);
-
-        public delegate void WhenGifting(Gift gift);
-
-        public delegate void WhenJoin(User user);
-
-        public delegate void WhenLeave();
-
-        public delegate void WhenLiked(User user);
-
         public delegate void WhenMessage(MessageModel m);
-
-        public delegate void WhenSubscribe(User user);
 
 //        public delegate void WhenLotteryFinished();
         private long _roomPopularity;
@@ -51,14 +35,6 @@ namespace XiguaDanmakuHelper
             liverName = name;
         }
 
-        public event WhenChat OnChat;
-        public event WhenGifting OnGifting;
-        public event WhenGift OnGift;
-        public event WhenJoin OnJoin;
-        public event WhenSubscribe OnSubscribe;
-        public event WhenLiked OnLiked;
-        public event WhenAd OnAd;
-        public event WhenLeave OnLeave;
         public static event WhenMessage OnMessage;
         public static event RoomCounting OnRoomCounting;
         public static event Log LogMessage;
@@ -148,6 +124,7 @@ namespace XiguaDanmakuHelper
                             isLive = (bool) _j["cells"][0]["anchor"]["user_info"]["is_living"];
                             RoomID = (long)_j["cells"][0]["anchor"]["room_id"];
                             liverName = new User((JObject)_j["cells"][0]).ToString();
+                            user = new User((JObject)_j["cells"][0]);
                         }
                         else
                         {
@@ -282,19 +259,15 @@ namespace XiguaDanmakuHelper
                 switch ((string) m["common"]["method"])
                 {
                     case "VideoLivePresentMessage":
-                        OnGifting?.Invoke(new Gift((JObject) m));
                         OnMessage?.Invoke(new MessageModel(MessageEnum.Gifting, new Gift((JObject) m)));
                         break;
                     case "VideoLivePresentEndTipMessage":
-                        OnGift?.Invoke(new Gift((JObject) m));
                         OnMessage?.Invoke(new MessageModel(MessageEnum.Gift, new Gift((JObject) m)));
                         break;
                     case "VideoLiveRoomAdMessage":
-                        OnAd?.Invoke();
                         OnMessage?.Invoke(new MessageModel(MessageEnum.Ad, (JObject) m));
                         break;
                     case "VideoLiveChatMessage":
-                        OnChat?.Invoke(new Chat((JObject) m));
                         OnMessage?.Invoke(new MessageModel(new Chat((JObject) m)));
                         break;
                     case "VideoLiveMemberMessage":
@@ -304,19 +277,15 @@ namespace XiguaDanmakuHelper
                         OnMessage?.Invoke(new MessageModel(MessageEnum.Enter, (JObject) m));
                         break;
                     case "VideoLiveSocialMessage":
-                        OnSubscribe?.Invoke(new User((JObject) m));
                         OnMessage?.Invoke(new MessageModel(MessageEnum.Subscribe, new User((JObject) m)));
                         break;
                     case "VideoLiveJoinDiscipulusMessage":
-                        OnJoin?.Invoke(new User((JObject) m));
                         OnMessage?.Invoke(new MessageModel(MessageEnum.Join, new User((JObject) m)));
                         break;
                     case "VideoLiveControlMessage":
-                        OnLeave?.Invoke();
                         OnMessage?.Invoke(new MessageModel(MessageEnum.Leave));
                         break;
                     case "VideoLiveDiggMessage":
-                        OnLiked?.Invoke(new User((JObject) m));
                         OnMessage?.Invoke(new MessageModel(MessageEnum.Like, new User((JObject) m)));
                         break;
                     default:

@@ -249,6 +249,7 @@ namespace Bililive_dm
                 ConnBtn.IsEnabled = true;
             }
 
+            LiverName.Text = b.user.ToString();
             DisconnBtn.IsEnabled = true;
         }
 
@@ -285,7 +286,7 @@ namespace Bililive_dm
                         logging(danmakuModel.ChatModel.ToString());
                         Dispatcher.BeginInvoke(new Action(() =>
                         {
-                            AddDMText(danmakuModel.ChatModel.user.ToString(),
+                            AddDMText(danmakuModel.ChatModel.user,
                                 danmakuModel.ChatModel.content);
                         }));
                     }
@@ -335,15 +336,44 @@ namespace Bililive_dm
                 Log.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => logging(text)));
         }
 
-        public void AddDMText(string user, string text, bool warn = false)
+        public void AddDMText(string notify, string text, bool warn = false)
         {
             if (!overlay_enabled) return;
             if (Dispatcher.CheckAccess())
             {
                 var c = new DanmakuTextControl();
 
-                c.UserName.Text = user;
+                c.UserName.Text = notify;
                 if (warn) c.UserName.Foreground = Brushes.Red;
+                c.Text.Text = text;
+                c.ChangeHeight();
+                var sb = (Storyboard) c.Resources["Storyboard1"];
+                //Storyboard.SetTarget(sb,c);
+                sb.Completed += sb_Completed;
+                overlay.LayoutRoot.Children.Add(c);
+            }
+            else
+            {
+                Log.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => AddDMText(notify, text)));
+            }
+        }
+
+        public void AddDMText(User user, string text, bool warn = false)
+        {
+            if (!overlay_enabled) return;
+            if (Dispatcher.CheckAccess())
+            {
+                var c = new DanmakuTextControl();
+
+                c.UserName.Text = user.ToString();
+                if (warn)
+                {
+                    c.UserName.Foreground = Brushes.Red;
+                }
+                else if (user.isImportant())
+                {
+                    c.UserName.Foreground = Brushes.Gold;
+                }
                 c.Text.Text = text;
                 c.ChangeHeight();
                 var sb = (Storyboard) c.Resources["Storyboard1"];
@@ -429,6 +459,16 @@ namespace Bililive_dm
         private void showChat_OnChecked(object sender, RoutedEventArgs e)
         {
             ChatOpt = true;
+        }
+
+        private void showBrand_OnChecked(object sender, RoutedEventArgs e)
+        {
+            User.showBrand = true;
+        }
+
+        private void showBrand_OnUnchecked(object sender, RoutedEventArgs e)
+        {
+            User.showBrand = false;
         }
     }
 }

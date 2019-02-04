@@ -36,6 +36,8 @@
             <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" Text="当前人气: " VerticalAlignment="Center" />
             <TextBlock x:Name="OnlinePopularity" HorizontalAlignment="Left" TextWrapping="Wrap" Text="Ø"
                        VerticalAlignment="Center" />
+            <CheckBox Content="粉丝牌" HorizontalAlignment="Left" VerticalAlignment="Center" x:Name="showBrand"
+                      IsChecked="False" Checked="showBrand_OnChecked" Unchecked="showBrand_OnUnchecked" Margin="10,0,0,0"/>
             <CheckBox Content="聊天" HorizontalAlignment="Left" VerticalAlignment="Center" x:Name="showChat"
                       IsChecked="True" Checked="showChat_OnChecked" Unchecked="ShowChat_OnUnchecked" Margin="10,0,0,0"/>
             <CheckBox Content="礼物及粉丝团" HorizontalAlignment="Left" VerticalAlignment="Center" x:Name="showPresent"

@@ -6,6 +6,7 @@ namespace XiguaDanmakuHelper
 {
     public struct User
     {
+        public static bool showBrand = false;
         private readonly long ID;
         private readonly string Name;
         private readonly string brand;
@@ -48,23 +49,43 @@ namespace XiguaDanmakuHelper
             }
         }
 
+        public bool isImportant()
+        {
+            if (level > 6)
+            {
+                return true;
+            }
+            else if (type > 0)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        
         public override string ToString()
         {
-            return Name;
-//            if (level == 0)
-//            {
-//                switch (type)
-//                {
-//                    case 1:
-//                        return $"[房管]{Name}";
-//                    case 2:
-//                        return $"[主播]{Name}";
-//                    default:
-//                        return $"{Name}";
-//                }
-//            }
-//
-//            return type != 0 ? $"[{brand}{level}]{Name}" : $"<{brand}{level}>{Name}";
+            if (showBrand)
+            {
+                if (level == 0)
+                {
+                    switch (type)
+                    {
+                        case 1:
+                            return $"[房管]{Name}";
+                        case 2:
+                            return $"[主播]{Name}";
+                        default:
+                            return $"{Name}";
+                    }
+                }
+
+                return type != 0 ? $"[{brand}{level}]{Name}" : $"<{brand}{level}>{Name}";
+            }
+
+            return $"{Name}";
         }
     }
 }
