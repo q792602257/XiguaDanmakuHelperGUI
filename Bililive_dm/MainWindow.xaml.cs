@@ -323,6 +323,19 @@ namespace Bililive_dm
                     }
                     break;
                 }
+                case MessageEnum.Subscribe:
+                {
+                    if (GiftOpt)
+                    {
+                        logging("新关注 : 感谢 " + danmakuModel.UserModel + " 关注了主播");
+                        Dispatcher.BeginInvoke(new Action(() =>
+                        {
+                            AddDMText("新关注",
+                                "感谢" + danmakuModel.UserModel + "关注了主播", true);
+                        }));
+                    }
+                    break;
+                }
                 case MessageEnum.Like:
                 {
                     if (LikeOpt)
