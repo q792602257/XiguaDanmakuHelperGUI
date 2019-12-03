@@ -119,15 +119,15 @@ namespace XiguaDanmakuHelper
                 {
                     foreach (var _j in j["data"])
                     {
-                        if ((int) _j["block_type"] != 0)
+                        if (_j == null || (int) _j["block_type"] != 0)
                         {
                             continue;
                         }
 
-                        if (_j["cells"].Any())
+                        if (_j["cells"]!= null && _j["cells"].Any())
                         {
                             isValidRoom = true;
-                            isLive = (bool) _j["cells"][0]["anchor"]["user_info"]["is_living"];
+                            isLive = (bool) _j["cells"][0]["anchor"]["user_info"]?["is_living"];
                             RoomID = (long)_j["cells"][0]["anchor"]["room_id"];
                             liverName = new User((JObject)_j["cells"][0]).ToString();
                             user = new User((JObject)_j["cells"][0]);

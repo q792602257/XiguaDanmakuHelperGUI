@@ -64,7 +64,7 @@ namespace Bililive_dm
             }
 
             ChatOpt = true;
-            GiftOpt = false;
+            GiftOpt = true;
             LikeOpt = false;
             b = new Api();
             overlay_enabled = true;
@@ -364,6 +364,11 @@ namespace Bililive_dm
 
         public void AddDMText(string notify, string text, bool warn = false)
         {
+            var path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            using (var outfile = new StreamWriter(path + @"\西瓜直播弹幕.txt", true))
+            {
+                outfile.WriteLine(notify+": "+text);
+            }
             if (!overlay_enabled) return;
             if (Dispatcher.CheckAccess())
             {
@@ -386,6 +391,12 @@ namespace Bililive_dm
 
         public void AddDMText(User user, string text)
         {
+            var path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            using (var outfile = new StreamWriter(path + @"\西瓜直播弹幕.txt", true))
+            {
+                outfile.WriteLine(user+": "+text);
+            }
+
             if (!overlay_enabled) return;
             if (Dispatcher.CheckAccess())
             {

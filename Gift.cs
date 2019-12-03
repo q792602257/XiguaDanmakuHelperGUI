@@ -39,22 +39,29 @@ namespace XiguaDanmakuHelper
             }
         }
 
-        private void UpdateGiftList()
+        private static void UpdateGiftList()
         {
-            GiftList = new Dictionary<long, string>();
-            GiftList.Add(10001, "西瓜");
+            if (GiftList.Count == 0)
+            {
+                forceUpdateGiftList();
+            }
+        }
+
+        private static void forceUpdateGiftList()
+        {
             var _text = Common.HttpGet($"https://i.snssdk.com/videolive/gift/get_gift_list?room_id={RoomID}&version_code=730&device_platform=android");
             var j = JObject.Parse(_text);
             if (j["gift_info"].Any())
-                foreach (var g in j["gift_info"])
-                    if (GiftList.ContainsKey((long) g["id"]))
-                    {
-                        GiftList[(long) g["id"]] = (string) g["name"];
-                    }
-                    else
-                    {
-                        GiftList.Add((long) g["id"], (string) g["name"]);
-                    }
+                GiftList = new Dictionary<long, string>();
+            foreach (var g in j["gift_info"])
+                if (GiftList.ContainsKey((long) g["id"]))
+                {
+                    GiftList[(long) g["id"]] = (string) g["name"];
+                }
+                else
+                {
+                    GiftList.Add((long) g["id"], (string) g["name"]);
+                }
         }
 
         public override string ToString()
