@@ -1,5 +1,5 @@
-# 新版：
-[q792602257/XiguaLive_dm](https://github.com/q792602257/XiguaLive_dm)
+# 已停止开发
+如需后续开发，可以参考[q792602257/XiguaLiveDanmakuHelper](https://github.com/q792602257/XiguaLiveDanmakuHelper "Python Console Ver") 此处代码，api.py文件
 
 # XiguaDanmakuHelperGUI
 ### 西瓜直播弹幕助手--界面版
